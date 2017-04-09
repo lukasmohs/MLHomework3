@@ -47,20 +47,21 @@ a. Perform logistic regression using glm or other package
 ```{r, quiet=T, message=F}
 lr <- glm(formula = y  ~ .,
           family=binomial(link="logit"),data = df, control = list(maxit = 100))
-summary(lr)
 ```
 
 b. Perform logistic regression using optim. Compare your parameters from optim to the glm parameters.
 ```{r, quiet=T, message=F}
 linear_prediction = function(x1,x2, pars) {
-  pars[-1]*x2 + pars[1]*x1
+  pars[1]+ pars[2]*x1 + pars[3]*x2
 }
 sq_loss = function(pars, y, x1,x2) {
-  sum((y-linear_prediction(x1,x2,pars))^2)
+  sum((y-linear_prediction(x1,x2,pars))^2) #toefte
 }
-opt <- optim(par=rep(0,2), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
+opt <- optim(par=rep(0,3), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
 opt$par
 lr$coefficients
+print("to compare...")
+log(opt$par[1]/(1-opt$par[1]))
 ```
 
 c. Perform logistic regression with L2 regularization
@@ -68,12 +69,35 @@ c. Perform logistic regression with L2 regularization
 sq_loss_l2_regularized = function(pars, y, x1, x2, lambda=100) {
   sq_loss(pars,y,x1,x2) + lambda*sum(pars^2)
 }
-optreg = optim(par=rep(0,2), sq_loss_l2_regularized, y=df$y, x1=df$x1, x2=df$x2)
+optreg = optim(par=rep(0,3), sq_loss_l2_regularized, y=df$y, x1=df$x1, x2=df$x2)
 optreg$par
 ```
 
 d. Perform logistic regression using optim with quadratic terms
-**[response required]**
+```{r, quiet=T, message=F}
+linear_prediction = function(x1,x2, pars) {
+  pars[1]+ pars[2]*x1 + pars[3]*x2
+}
+quadratic_term_prediction1 = function(x1,x2, pars) {
+  (x1*pars[2] + x2*pars[3] + pars[1])^2
+}
+quadratic_term_prediction = function(x1,x2, pars) {
+   pars[1] + x1* pars[2] + x2 * pars[3] + x1^2*pars[4] + x2^2 * pars[5] + x1*x2*pars[6]
+}
+sq_loss = function(pars, y, x1,x2) {
+  sum((y-quadratic_term_prediction(x1,x2,pars))^2)
+}
+opt <- optim(par=rep(0,6), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
+opt$par
+lr$coefficients
+
+
+ggplot(data.frame(x1=c(0, 2)), aes(x1)) + stat_function(fun=test)
+test = function(x1) {
+  lr$coefficients[1]+x1*lr$coefficients[2]
+}
+
+```
 
 e. Perform logistic regression with L2 regularization with quadratic terms
 **[response required]**
