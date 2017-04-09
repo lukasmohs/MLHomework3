@@ -1,10 +1,4 @@
----
-  title: "Machine Learning for Health Care: Homework 3"
-  output:
-    html_document
-  fig_width: 7
-  fig_height: 5
----
+# Homework 2
   
 ## Overview
   Homework 3 tackles more advanced machine learnings models than the ones you have used in homeworks so far. You will draw from both your learning in lecture and discussion with the skills you are developing in the workshop sessions.
@@ -50,13 +44,31 @@ ggplot(data = df, aes(x=x1,y=x2,color=y)) + geom_point() + coord_cartesian(xlim=
 ```
 
 a. Perform logistic regression using glm or other package
-**[response required]**
+```{r, quiet=T, message=F}
+lr <- glm(formula = y  ~ .,
+          family=binomial(link="logit"),data = df, control = list(maxit = 100))
+summary(lr)
+```
 
 b. Perform logistic regression using optim. Compare your parameters from optim to the glm parameters.
-**[response required]**
+```{r, quiet=T, message=F}
+linear_prediction = function(x1,x2, pars) {
+  pars[-1]*x2 + pars[1]*x1
+}
+sq_loss = function(pars, y, x1,x2) {
+  sum((y-linear_prediction(x1,x2,pars))^2)
+}
+lr2 <- optim(par=rep(0,2), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
+summary(lr2)
+```
 
 c. Perform logistic regression with L2 regularization
-**[response required]**
+```{r, quiet=T, message=F}
+sq_loss_l2_regularized = function(pars, y, x, lambda=100) {
+  sq_loss(pars,y,x) + lambda*sum(pars^2)
+  # sq_loss(pars,y,x) + lambda*sum(pars[-1]^2) # often we omit the intercept term
+}
+```
 
 d. Perform logistic regression using optim with quadratic terms
 **[response required]**
