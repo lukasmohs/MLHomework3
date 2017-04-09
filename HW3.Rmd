@@ -58,16 +58,18 @@ linear_prediction = function(x1,x2, pars) {
 sq_loss = function(pars, y, x1,x2) {
   sum((y-linear_prediction(x1,x2,pars))^2)
 }
-lr2 <- optim(par=rep(0,2), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
-summary(lr2)
+opt <- optim(par=rep(0,2), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
+opt$par
+lr$coefficients
 ```
 
 c. Perform logistic regression with L2 regularization
 ```{r, quiet=T, message=F}
-sq_loss_l2_regularized = function(pars, y, x, lambda=100) {
-  sq_loss(pars,y,x) + lambda*sum(pars^2)
-  # sq_loss(pars,y,x) + lambda*sum(pars[-1]^2) # often we omit the intercept term
+sq_loss_l2_regularized = function(pars, y, x1, x2, lambda=100) {
+  sq_loss(pars,y,x1,x2) + lambda*sum(pars^2)
 }
+optreg = optim(par=rep(0,2), sq_loss_l2_regularized, y=df$y, x1=df$x1, x2=df$x2)
+optreg$par
 ```
 
 d. Perform logistic regression using optim with quadratic terms
