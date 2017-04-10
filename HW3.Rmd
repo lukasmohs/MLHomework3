@@ -147,7 +147,14 @@ ate
 ```
 
 Under the ground truth, what is the treatment effect of statins in patients with diabetes? Compare that to the treatment effect of statins in patients without diabetes.
-**[response required]**
+```{r, quiet=T, message=F}
+source("homework3simulator.r")
+ate = (sum(statin_sample$diabetes==1&statin_sample$statin==0&statin_sample$mi==1)/sum(statin_sample$diabetes==1&statin_sample$statin==0) - sum(statin_sample$diabetes==1&statin_sample$statin==1&statin_sample$mi==1)/sum(statin_sample$diabetes==1&statin_sample$statin==1)) * 100
+
+print("The ATE (in %) evaluates to: ")
+ate
+
+```
 
 Under the ground truth model, what is the cross entropy error of the optimal prediction function (hint: A. is there irreducible error, i.e., given x, can you perfectly predict y? B. Given the best you can do, how well do you do in expectation)?
 **[response required]**
