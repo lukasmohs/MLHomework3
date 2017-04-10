@@ -67,7 +67,7 @@ log(opt$par[1]/(1-opt$par[1]))
 c. Perform logistic regression with L2 regularization
 ```{r, quiet=T, message=F}
 sq_loss_l2_regularized = function(pars, y, x1, x2, lambda=100) {
-  sq_loss(pars,y,x1,x2) + lambda*sum(pars^2)
+  sq_loss(pars,y,x1,x2) + lambda*sum(pars[2]^2+pars[3]^2) # omit the intercept
 }
 optreg = optim(par=rep(0,3), sq_loss_l2_regularized, y=df$y, x1=df$x1, x2=df$x2)
 optreg$par
@@ -81,23 +81,23 @@ linear_prediction = function(x1,x2, pars) {
 quadratic_term_prediction1 = function(x1,x2, pars) {
   (x1*pars[2] + x2*pars[3] + pars[1])^2
 }
-quadratic_term_prediction = function(x1,x2, pars) {
+quadratic_term_prediction2 = function(x1,x2, pars) {
    pars[1] + x1* pars[2] + x2 * pars[3] + x1^2*pars[4] + x2^2 * pars[5] + x1*x2*pars[6]
 }
-sq_loss = function(pars, y, x1,x2) {
-  sum((y-quadratic_term_prediction(x1,x2,pars))^2)
+sq_loss_quadratic = function(pars, y, x1, x2) {
+  sum((y-quadratic_term_prediction2(x1,x2,pars))^2)
 }
-optquad <- optim(par=rep(0,6), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
+optquad <- optim(par=rep(0,6), fn=sq_loss_quadratic, y=df$y, x1=df$x1, x2=df$x2)
 optquad$par
 
 ```
 
 e. Perform logistic regression with L2 regularization with quadratic terms
 ```{r, quiet=T, message=F}
-sq_loss_l2_regularized = function(pars, y, x1, x2, lambda=100) {
-  sq_loss(pars,y,x1,x2) + lambda*sum(pars^2)
+sq_loss_l2_regularized_quadratic = function(pars, y, x1, x2, lambda=100) {
+  sq_loss_quadratic(pars,y,x1,x2) + lambda*sum(pars[2]^2+pars[3]^2)
 }
-optquadreg <- optim(par=rep(0,6), fn=sq_loss_l2_regularized, y=df$y, x1=df$x1, x2=df$x2)
+optquadreg <- optim(par=rep(0,6), fn=sq_loss_l2_regularized_quadratic, y=df$y, x1=df$x1, x2=df$x2)
 optquadreg$par
 ```
 
@@ -105,38 +105,47 @@ f. Create a learning curve for parts b, c, d, e. Interpret your learning curve.
 ```{r, quiet=T, message=F}
 #c("%","lr","opt","optreg","quadopt","quadoptreg")
 accuracies = data.frame(x = numeric(100), opt = numeric(100), optreg=numeric(100), optquad=numeric(100),optquadreg=numeric(100))
+test = df[seq(nrow(df)/2,nrow(df),1),]
 for (i in 1:100 ){
   optaccuracy = 0 
   optregaccuracy = 0 
   optquadaccuracy = 0 
   optquadregaccuracy = 0 
-  train = df[seq(1,nrow(df)/100*i,1),]
-  opt <- optim(par=rep(0,3), fn=sq_loss, y=train$y, x1=train$x1, x2=train$x2)
-  optreg = optim(par=rep(0,3), fn=sq_loss_l2_regularized, y=df$y, x1=df$x1, x2=df$x2)
-  optquad <- optim(par=rep(0,6), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
-  optquadreg <- optim(par=rep(0,6), fn=sq_loss_l2_regularized, y=df$y, x1=df$x1, x2=df$x2)
-  for (c in 1:nrow(df)) {
-    if((opt$par[1] + opt$par[1]*df$x1[c] + opt$par[2]*df$x2[c] > 0.5) == (df$y[c]==1 )) {
+  train = df[seq(1,nrow(df)/2/100*i,1),]
+  opt = optim(par=rep(0,3), fn=sq_loss, y=train$y, x1=train$x1, x2=train$x2)
+  optreg = optim(par=rep(0,3), fn=sq_loss_l2_regularized, y=train$y, x1=train$x1, x2=train$x2)
+  optquad = optim(par=rep(0,6), fn=sq_loss_quadratic, y=train$y, x1=train$x1, x2=train$x2)
+  optquadreg = optim(par=rep(0,6), fn=sq_loss_l2_regularized_quadratic, y=train$y, x1=train$x1, x2=train$x2)
+  for (c in 1:nrow(test)) {
+    if((opt$par[1] + opt$par[2]*test$x1[c] + opt$par[3]*test$x2[c] >  mean(test$y)) == (test$y[c]==1 )) {
       optaccuracy = optaccuracy + 1
     }
-    if((optreg$par[1] + optreg$par[1]*df$x1[c] + optreg$par[2]*df$x2[c] > 0.5) == (df$y[c]==1 )) {
+
+    if((optreg$par[1] + optreg$par[2]*test$x1[c] + optreg$par[3]*test$x2[c] >  mean(test$y)) == (test$y[c]==1 )) {
       optregaccuracy = optregaccuracy + 1
     }
-    if((optquad$par[1] + optquad$par[1]*df$x1[c] + optquad$par[2]*df$x2[c] > 0.5) == (df$y[c]==1 )) {
+    if((optquadreg$par[1] + optquadreg$par[2]*test$x1[c] + optquadreg$par[3]*test$x2[c] + optquadreg$par[4]*test$x1[c]^2
+          + optquadreg$par[5]*test$x2[c]^2 + optquadreg$par[6]*test$x2[c]*test$x1[c] >   mean(test$y)) == (test$y[c]==1 )) {
       optquadaccuracy = optquadaccuracy + 1
     }
-    if((optquadreg$par[1] + optquadreg$par[1]*df$x1[c] + optquadreg$par[2]*df$x2[c] > 0.5) == (df$y[c]==1 )) {
+    if((optquadreg$par[1] + optquadreg$par[2]*test$x1[c] + optquadreg$par[3]*test$x2[c] + optquadreg$par[4]*test$x1[c]^2
+          + optquadreg$par[5]*test$x2[c]^2 + optquadreg$par[6]*test$x2[c]*test$x1[c] >   mean(test$y)) == (test$y[c]==1 )) {
       optquadregaccuracy = optquadregaccuracy + 1
     }
+    #if(((optquadreg$par[1] + optquadreg$par[2]*df$x1[c] + optquadreg$par[3]*df$x2[c])^2 >  mean(df$y)) == (df$y[c]==1 )) {
+     # optquadregaccuracy = optquadregaccuracy + 1
+    #}
     accuracies$x[i] <- i
-    accuracies$opt[i] <- optaccuracy
-    accuracies$optreg[i] <- optregaccuracy
-    accuracies$optquad[i] <- optquadaccuracy
-    accuracies$optquadreg[i] <- optquadregaccuracy
+    accuracies$opt[i] <- optaccuracy/nrow(test)
+    accuracies$optreg[i] <- optregaccuracy/nrow(test)
+    accuracies$optquad[i] <- optquadaccuracy/nrow(test)
+    accuracies$optquadreg[i] <- optquadregaccuracy/nrow(test)
   }
 }
 
 accuracies
+ggplot(data = accuracies, aes(x))  + geom_line(aes(y = opt, color="#FF9999")) + geom_line(aes(y = optreg, color="#56B4E9")) + geom_line(aes(y = optquad,color="#F0E442")) + geom_line(aes(y = optquadreg,color="#CC79A7")) + coord_cartesian(xlim=c(0,100), ylim=c(0,500))
+
 
 ```
 
