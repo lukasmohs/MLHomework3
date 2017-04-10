@@ -1,19 +1,4 @@
-# Homework 2
-  
-## Overview
-  Homework 3 tackles more advanced machine learnings models than the ones you have used in homeworks so far. You will draw from both your learning in lecture and discussion with the skills you are developing in the workshop sessions.
-
-The homework is split into three parts: (1) designing and optimizing for your own objective function, (2) deploying algorithms in a simulation study, and (3) conducting a survival analysis with a Cox model.
-
-**Homework 3 is due April 10th at the beginning of class.**
-  
-## Objectives
-- design a gradient descent optimization
-- use regularization (shrinkage)
-- conduct and interpret a simulation study
-- run machine learning algorithms: LR, random forests, neural networks, support vector machines
-- reporting learning curves
-- conducting survival/reliability analysis
+# Homework 3
 
 ## Part 1: Optimization (5 points)
 
@@ -60,7 +45,7 @@ sq_loss = function(pars, y, x1,x2) {
 opt <- optim(par=rep(0,3), fn=sq_loss, y=df$y, x1=df$x1, x2=df$x2)
 opt$par
 lr$coefficients
-print("to compare...")
+print("to compare the intercept:")
 log(opt$par[1]/(1-opt$par[1]))
 ```
 
@@ -103,7 +88,6 @@ optquadreg$par
 
 f. Create a learning curve for parts b, c, d, e. Interpret your learning curve.
 ```{r, quiet=T, message=F}
-#c("%","lr","opt","optreg","quadopt","quadoptreg")
 accuracies = data.frame(x = numeric(100), opt = numeric(100), optreg=numeric(100), optquad=numeric(100),optquadreg=numeric(100))
 test = df[seq(nrow(df)/2,nrow(df),1),]
 for (i in 1:100 ){
@@ -132,9 +116,6 @@ for (i in 1:100 ){
           + optquadreg$par[5]*test$x2[c]^2 + optquadreg$par[6]*test$x2[c]*test$x1[c] >   mean(test$y)) == (test$y[c]==1 )) {
       optquadregaccuracy = optquadregaccuracy + 1
     }
-    #if(((optquadreg$par[1] + optquadreg$par[2]*df$x1[c] + optquadreg$par[3]*df$x2[c])^2 >  mean(df$y)) == (df$y[c]==1 )) {
-     # optquadregaccuracy = optquadregaccuracy + 1
-    #}
     accuracies$x[i] <- i
     accuracies$opt[i] <- optaccuracy/nrow(test)
     accuracies$optreg[i] <- optregaccuracy/nrow(test)
