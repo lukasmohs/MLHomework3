@@ -98,8 +98,8 @@ for (i in 1:100 ){
   train = df[seq(1,nrow(df)/2/100*i,1),]
   opt = optim(par=rep(0,3), fn=sq_loss, y=train$y, x1=train$x1, x2=train$x2)
   optreg = optim(par=rep(0,3), fn=sq_loss_l2_regularized, y=train$y, x1=train$x1, x2=train$x2)
-  optquad = optim(par=rep(0,6), fn=sq_loss_quadratic, y=train$y, x1=train$x1, x2=train$x2)
-  optquadreg = optim(par=rep(0,6), fn=sq_loss_l2_regularized_quadratic, y=train$y, x1=train$x1, x2=train$x2)
+  optquad = optim(par=rep(1,6), fn=sq_loss_quadratic, y=train$y, x1=train$x1, x2=train$x2)
+  optquadreg = optim(par=rep(1,6), fn=sq_loss_l2_regularized_quadratic, y=train$y, x1=train$x1, x2=train$x2)
   for (c in 1:nrow(test)) {
     if((opt$par[1] + opt$par[2]*test$x1[c] + opt$par[3]*test$x2[c] >  mean(test$y)) == (test$y[c]==1 )) {
       optaccuracy = optaccuracy + 1
@@ -125,7 +125,7 @@ for (i in 1:100 ){
 }
 
 accuracies
-ggplot(data = accuracies, aes(x))  + geom_line(aes(y = opt, color="#FF9999")) + geom_line(aes(y = optreg, color="#56B4E9")) + geom_line(aes(y = optquad,color="#F0E442")) + geom_line(aes(y = optquadreg,color="#CC79A7")) + coord_cartesian(xlim=c(0,100), ylim=c(0,500))
+ggplot(data = accuracies, aes(x))  + geom_line(aes(y = opt, color="#FF9999")) + geom_line(aes(y = optreg, color="#56B4E9")) + geom_line(aes(y = optquad,color="#F0E442")) + geom_line(aes(y = optquadreg,color="#CC79A7")) + coord_cartesian(xlim=c(0,100), ylim=c(0,1))
 
 
 ```
@@ -136,7 +136,11 @@ ggplot(data = accuracies, aes(x))  + geom_line(aes(y = opt, color="#FF9999")) + 
 Use the data generator ```source(homework3simulator.r)``` provided to conduct a simulation study on the effect of statin on MI (myocardial infarction/heart attack). The way the data generator works is it enumerates all possible states and associates each with a cell of the full joint distribution ```m``` of the form: ```c(feature vector, probability)```. Use ```get_data( nData , m )``` to sample ```nData``` examples.
 
 Under the ground truth, what is the treatment effect of statins on MI?
-**[response required]**
+```{r, quiet=T, message=F}
+source("homework3simulator.r")
+get_data(50,m)
+
+```
 
 Under the ground truth, what is the treatment effect of statins in patients with diabetes? Compare that to the treatment effect of statins in patients without diabetes.
 **[response required]**
