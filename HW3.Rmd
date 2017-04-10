@@ -173,18 +173,54 @@ Compare the performance of the following algorithms in prediction of MI: logisti
 Plot learning curves for 10, 30, 100, 300, 1000, 3000 training examples. Report any errors. Interpret your findings.
 ```{r, quiet=T, message=F}
 library(ROCR)
+statin_test = get_data(1000,m)
+
+##Logistic Regression
+LR <- glm(formula = mi  ~ .,
+          family=binomial(link="logit"),data = statin_sample, control = list(maxit = 100))
+LRPredictedProbabilities <- predict(lr, statin_test, type="response")
+LRPred <- prediction( LRPredictedProbabilities, statin_test$mi)
+LRROC <- performance(LRPred,"tpr","fpr")
 
 ##Random Forests
 library(randomForest)
-statin_test = get_data(1000,m)
 rf = randomForest(as.factor(mi==1) ~ ., statin_sample)
-rfPredictions = predict(rf,statin_test, type="prob") 
+rfPredictedProbabilities = predict(rf,statin_test, type="prob") 
 RFPred <- prediction( rfPredictions[,2], statin_test$mi)
 RFROC <- performance(RFPred,"tpr","fpr")
 
+##Neural Networks
+library(neuralnet)
+n = names(statin_sample)[-11]
+rhs = paste(names(statin_sample[-11]), collapse = " + ")
+formulaString = as.formula(paste0("mi~",rhs))
+#nnSpectTrain = statin_sample %>% mutate_all((function(x) (x-mean(x))/sd(x)))
+#nnSpectTest = statin_test %>% mutate_all(function(x) (x-mean(x))/sd(x)) 
+NN = neuralnet(formula = formulaString, 
+               data = statin_sample,#nnSpectTrain %>% mutate(mi=ifelse(mi>mean(mi),1,0)),
+               err.fct="ce",
+               act.fct="logistic",
+               linear.output = F,
+               hidden=c(2,3),
+               rep =5,
+               stepmax=1e5)# takes a bit longer to converge :D
+
+NNPredictedProbabilities = predict(NN,statin_test, type="prob") 
+NNPred <- prediction( NNPredictions[,2], statin_test$mi)
+NNROC <- performance(NNPred,"tpr","fpr")
+
+#nnPredictions = data.frame(
+ # nnpr = compute(nn,nnSpectTest %>% select(-V1))$net.result,
+  #truth = spectTest$V1==1) %>% tbl_df()
+#plot(nn)
+#nnPredictions %>% mutate(nnpr=nnpr>0.5) %>% table()
+
+##SVM
+
+
 ##Plotting
 plot(RFROC, col="blue")
-#plot(tanPerfROC, add = TRUE, col="red")
+plot(LRROC, add = TRUE, col="red")
 #plot(bayesPerfROC, add = TRUE, col="green")
 ```
 
