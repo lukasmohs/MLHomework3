@@ -153,15 +153,40 @@ ate = (sum(statin_sample$diabetes==1&statin_sample$statin==0&statin_sample$mi==1
 
 print("The ATE (in %) evaluates to: ")
 ate
-
+print("The treatment effect is roughly 1% higher for people with diabetes.")
 ```
 
 Under the ground truth model, what is the cross entropy error of the optimal prediction function (hint: A. is there irreducible error, i.e., given x, can you perfectly predict y? B. Given the best you can do, how well do you do in expectation)?
-**[response required]**
+```{r, quiet=T, message=F}
+statinlr <- glm(formula = mi  ~ .,
+          family=binomial(link="logit"),data = statin_sample, control = list(maxit = 100))
+statinpreds = predict(object=statinlr, type="response", data=get_data(1000,m))
+CEError = 0
+for (i in 1:1000) {
+  CEError = log(statinpreds[i])*statin_sample$mi[i] + CEError
+}
+CEError = CEError * -1
+CEError
+```
 
 Compare the performance of the following algorithms in prediction of MI: logistic regression, random forests, neural networks, and SVMs
 Plot learning curves for 10, 30, 100, 300, 1000, 3000 training examples. Report any errors. Interpret your findings.
-**[response required]**
+```{r, quiet=T, message=F}
+library(ROCR)
+
+##Random Forests
+library(randomForest)
+statin_test = get_data(1000,m)
+rf = randomForest(as.factor(mi==1) ~ ., statin_sample)
+rfPredictions = predict(rf,statin_test, type="prob") 
+RFPred <- prediction( rfPredictions[,2], statin_test$mi)
+RFROC <- performance(RFPred,"tpr","fpr")
+
+##Plotting
+plot(RFROC, col="blue")
+#plot(tanPerfROC, add = TRUE, col="red")
+#plot(bayesPerfROC, add = TRUE, col="green")
+```
 
 ## Part 3: Survival Analysis (4 points)
 Conduct survival analysis. For this we will use the "mgus" data set from ```library(survival); mgus```. MGUS is "monogammopathy of unknown significance", and it is a medical condition identified in asymptomatic individuals who receive blood tests. In some cases it can be a precursor to the blood cancer called multiple myeloma. For more information on the study, see: http://www.mayoclinicproceedings.org/article/S0025-6196(12)60015-9/pdf
