@@ -138,7 +138,11 @@ Use the data generator ```source(homework3simulator.r)``` provided to conduct a 
 Under the ground truth, what is the treatment effect of statins on MI?
 ```{r, quiet=T, message=F}
 source("homework3simulator.r")
-get_data(50,m)
+statin_sample <- get_data(1000,m)
+ate = (sum(statin_sample$statin==0&statin_sample$mi==1)/sum(statin_sample$statin==0) - sum(statin_sample$statin==1&statin_sample$mi==1)/sum(statin_sample$statin==1)) * 100
+
+print("The ATE (in %) evaluates to: ")
+ate
 
 ```
 
