@@ -268,23 +268,29 @@ KM = Surv(survivalData$futime, survivalData$death==1) %>%
   (function(x) survfit(x ~ 1, data=survivalData))(.)
 # KM curve
 plot(KM, xlab= "Days",ylab="P(survive)", mark.time=T)
-KM
 
 # Cox Model
 CM = Surv(survivalData$futime, survivalData$death==1) %>%
   (function(x) coxph(x ~  age  +  sex + dxyr + pcdx +alb + creat +  hgb + mspike , data=survivalData))(.)
-CM
 
+"---------------------------"
+"Coefficients of Cox Model: "
+"---------------------------"
+coef(CM)
 # Reg Cox Model
 library(glmnet)
 survivalData["sex"] = ifelse(survivalData["sex"]=="male",1,0)
 survivalData["pcdx"] = ifelse(survivalData["pcdx"]=="AM",1,0)
 survivalData=survivalData %>% na.omit()
 RCM = survivalData  %>%
-  (function(x) glmnet(x %>% select(-id,-futime,-death) %>%
+  (function(x) glmnet(x %>% select(-id,-futime,-pctime,-death) %>%
                         as.data.frame() %>% as.matrix(),
                       Surv(survivalData$futime, survivalData$death==1),
                       family="cox"))(.)
-coef(RCM, s=0.1)
+"--------------------------------------"
+"Coefficients of Regularized Cox Model: "
+"--------------------------------------"
+coef(RCM, s=0.05)
 ```
-
+*From both calculated Cox Models we can derive that the gender of the patient seems to have the strongest influence on the time to mortality. In the non-regularized model, the size of the monoclonal protien spike at diagnosis (mspike) appears to be also predictive, meanwhile it is not as important in the regularized model. The subtype of plasma cell malignancy specification (pcdx), is also important within both models.*
+*By analyzing the Kaplan-Meier curve, we can see that the probability to survive almost linearly decreases, which could be an indicator for relatively small chances to die due to MGUS. Especially considering the average age, which is quite high (around 60), increases the probability of other reasons for death within the next years (5000 days = 13.7 years).*
