@@ -137,6 +137,7 @@ Use the data generator ```source(homework3simulator.r)``` provided to conduct a 
 
 Under the ground truth, what is the treatment effect of statins on MI?
 ```{r, quiet=T, message=F}
+require(dplyr)
 source("homework3simulator.r")
 statin_sample <- get_data(1000,m)
 ate = (sum(statin_sample$statin==0&statin_sample$mi==1)/sum(statin_sample$statin==0) - sum(statin_sample$statin==1&statin_sample$mi==1)/sum(statin_sample$statin==1)) * 100
@@ -155,6 +156,7 @@ print("The ATE (in %) evaluates to: ")
 ate
 print("The treatment effect is roughly 1% higher for people with diabetes.")
 ```
+*The treatment effect for people with diabetes is rougly 1-2% better than for people without diabetes*
 
 Under the ground truth model, what is the cross entropy error of the optimal prediction function (hint: A. is there irreducible error, i.e., given x, can you perfectly predict y? B. Given the best you can do, how well do you do in expectation)?
 ```{r, quiet=T, message=F}
@@ -168,6 +170,7 @@ for (i in 1:1000) {
 CEError = CEError * -1
 CEError
 ```
+*By taking a sample set of 1000 instances, we can derice this linear model. From further 1000 test instances, the cross entropy error could be computed. Even if the prediciton works very good, the noise of the created data makes a perfect prediction impossible.*
 
 Compare the performance of the following algorithms in prediction of MI: logistic regression, random forests, neural networks, and SVMs
 Plot learning curves for 10, 30, 100, 300, 1000, 3000 training examples. Report any errors. Interpret your findings.
@@ -224,8 +227,8 @@ for (i in cases) {
                  err.fct="ce",
                  act.fct="logistic",
                  linear.output = F,
-                 hidden=c(1,2),
-                 rep = 2,
+                 hidden=c(1,2), # had to decrease since not converging
+                 rep = 5,
                  stepmax=1e5)# takes a bit longer to converge :D
   NNPrdictedProbabilites = compute(NN,statin_test %>% select(-mi))$net.result 
   detach(package:neuralnet) #Killing the ROC prediction function...
@@ -255,13 +258,7 @@ plot_comparison(i)
 Conduct survival analysis. For this we will use the "mgus" data set from ```library(survival); mgus```. MGUS is "monogammopathy of unknown significance", and it is a medical condition identified in asymptomatic individuals who receive blood tests. In some cases it can be a precursor to the blood cancer called multiple myeloma. For more information on the study, see: http://www.mayoclinicproceedings.org/article/S0025-6196(12)60015-9/pdf
 
 Use glm and glmnet to conduct survival analysis with and without regularization. Describe the task and plot a Kaplan Meier curve; conduct your analysis; interpret your findings.
+```{r, quiet=T, message=F}
 
-**[responses required]**
+```
 
-**Nice, you're using some powerful tools in this homework!** You can now optimize and create your own objective function. You are using some of the strongest off-the-shelf methods in machine learning. And, you deployed what is arguably the most-commonly used algorithm in biostatistics.
-
-### Submission instructions
-
-Same as homework 2: please use git. **To submit the homework, email me a link to your git repository.** I should be able to type "git clone <url>" and have it download from a cloud service (github, bitbucket, etc). Note that if it is a private repository, you will need to permit me access to it (please provide access to jeremy.weiss@gmail.com).
-
-Your git repository should contain at least two commits with useful comments on what has changed from the previous version(s). This should be visible when I type in ```git log```. The submission I will grade is at the HEAD revision unless specified otherwise in your email. Include your .Rmd file and your .html file solutions in the repository with your name and andrew ID.
