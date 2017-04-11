@@ -187,8 +187,9 @@ plot_comparison = function(size){
 
 
 for (i in cases) {
+  library(neuralnet)
+  detach(package:neuralnet) #Killing the ROC prediction function...
   library(ROCR)
-
   
   statin_sample = get_data(i,m)
   statin_test = get_data(i,m)
@@ -224,8 +225,8 @@ for (i in cases) {
                  act.fct="logistic",
                  linear.output = F,
                  hidden=c(1,2),
-                 rep = 2)
-                 #stepmax=1e5)# takes a bit longer to converge :D
+                 rep = 2,
+                 stepmax=1e5)# takes a bit longer to converge :D
   NNPrdictedProbabilites = compute(NN,statin_test %>% select(-mi))$net.result 
   detach(package:neuralnet) #Killing the ROC prediction function...
   library(ROCR)
