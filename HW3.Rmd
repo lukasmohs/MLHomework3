@@ -125,7 +125,7 @@ for (i in 1:100 ){
 }
 
 accuracies
-ggplot(data = accuracies, aes(x))  + geom_line(aes(y = opt, color="#FF9999")) + geom_line(aes(y = optreg, color="#56B4E9")) + geom_line(aes(y = optquad,color="#F0E442")) + geom_line(aes(y = optquadreg,color="#CC79A7")) + coord_cartesian(xlim=c(0,100), ylim=c(0,1))
+ggplot(data = accuracies, aes(x)) + ylab("Accuracy") + xlab("Training Set Size (%)")  + geom_line(aes(y = opt, color="Logistic Regression(LR)")) + geom_line(aes(y = optreg, color="LR with L2 Regularization")) + geom_line(aes(y = optquad,color="LR based on quadratic terms")) + geom_line(aes(y = optquadreg,color="LR based on quadratic terms with L2 Regularization")) + coord_cartesian(xlim=c(0,100), ylim=c(0,1)) + scale_colour_manual("", breaks = c("Logistic Regression(LR)", "LR with L2 Regularization", "LR based on quadratic terms", "LR based on quadratic terms with L2 Regularization"), values = c("red", "green", "blue","violet"))
 
 
 ```
