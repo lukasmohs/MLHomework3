@@ -184,8 +184,7 @@ plot_comparison = function(size){
   plot(SVMROC, add = TRUE, col="green")
   plot(NNROC, add = TRUE, col="violet")
   title(main=cbind("ROC Comparison of different Classifiers, with n= ",size))
-  legend("bottom",c("Logistic Regression","Random Forest","Support Vector Machine","Neural Network"),
-       col=c("blue","red", "green","violet"), lwd=3, y.intersp = 1.0)
+  legend("bottomright",c("Logistic Regression","Random Forest","Support Vector Machine","Neural Network"),col=c("blue","red", "green","violet"), lwd=3, y.intersp = 1.0)
 }
 
 
@@ -253,12 +252,39 @@ plot_comparison(i)
 
 }
 ```
+*Unfortunately, the Neural Net sometimes doesn't converge. By reducing hidden layers and increasing the number of iterations as well as the step size, one can increase the probability of successful completion, but it remains uncertain.*
+*Generally speaking, the performance of all algorithms remains indistinguishable for a small training data set, but with n>100, differences become visible. Especially the Logistic Regression seems to be the most suitable model for the given problem followed by the Random Forest and the Support Vecotr Machine. In case the Neural Net converges and doesn't crash, its results are comparably good or sometimes even best*
+
 
 ## Part 3: Survival Analysis (4 points)
 Conduct survival analysis. For this we will use the "mgus" data set from ```library(survival); mgus```. MGUS is "monogammopathy of unknown significance", and it is a medical condition identified in asymptomatic individuals who receive blood tests. In some cases it can be a precursor to the blood cancer called multiple myeloma. For more information on the study, see: http://www.mayoclinicproceedings.org/article/S0025-6196(12)60015-9/pdf
 
 Use glm and glmnet to conduct survival analysis with and without regularization. Describe the task and plot a Kaplan Meier curve; conduct your analysis; interpret your findings.
 ```{r, quiet=T, message=F}
+library(survival)
+survivalData = mgus %>% tbl_df()
 
+KM = Surv(survivalData$futime, survivalData$death==1) %>%
+  (function(x) survfit(x ~ 1, data=survivalData))(.)
+# KM curve
+plot(KM, xlab= "Days",ylab="P(survive)", mark.time=T)
+KM
+
+# Cox Model
+CM = Surv(survivalData$futime, survivalData$death==1) %>%
+  (function(x) coxph(x ~  age  +  sex + dxyr + pcdx +alb + creat +  hgb + mspike , data=survivalData))(.)
+CM
+
+# Reg Cox Model
+library(glmnet)
+survivalData["sex"] = ifelse(survivalData["sex"]=="male",1,0)
+survivalData["pcdx"] = ifelse(survivalData["pcdx"]=="AM",1,0)
+survivalData=survivalData %>% na.omit()
+RCM = survivalData  %>%
+  (function(x) glmnet(x %>% select(-id,-futime,-death) %>%
+                        as.data.frame() %>% as.matrix(),
+                      Surv(survivalData$futime, survivalData$death==1),
+                      family="cox"))(.)
+coef(RCM, s=0.1)
 ```
 
