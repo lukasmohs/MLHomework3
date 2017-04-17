@@ -1,3 +1,8 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
 # Homework 3
 
 ## Part 1: Optimization (5 points)
@@ -20,9 +25,6 @@ get_data = function(n=data.size) {
 
 df = get_data(data.size)
 
-# plot(x=df$x1,y=df$x2, col=df$y+1,
-#      xlim=c(-3,3), ylim=c(-3,3), pch=18, xlab="x1", ylab="x2")
-# or 
 require(ggplot2)
 ggplot(data = df, aes(x=x1,y=x2,color=y)) + geom_point() + coord_cartesian(xlim=c(-3,3), ylim=c(-3,3))
 
@@ -176,7 +178,7 @@ Compare the performance of the following algorithms in prediction of MI: logisti
 Plot learning curves for 10, 30, 100, 300, 1000, 3000 training examples. Report any errors. Interpret your findings.
 ```{r, quiet=T, message=F}
 library(ROCR)
-
+source("homework3simulator.r")
 cases = c(10,30,100,300,1000,3000)
 plot_comparison = function(size){
   plot(LRROC, col="blue")
